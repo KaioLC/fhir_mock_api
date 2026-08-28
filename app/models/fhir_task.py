@@ -1,9 +1,9 @@
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, Optional
-from pydantic import BaseModel, Field
+from typing import Any, Literal
 
+from pydantic import BaseModel, Field
 
 
 class TaskStatus(str, Enum):
@@ -17,65 +17,48 @@ class TaskStatus(str, Enum):
     CANCELLED = "cancelled"
     FAILED = "failed"
 
+
 class TaskPriority(str, Enum):
     ROUTINE = "routine"
     URGENT = "urgent"
     ASAP = "asap"
     STAT = "stat"
 
+
 class Reference(BaseModel):
-    reference: str = Field(...,example="Device/MOCK-ROBOT-01",description="Tipo/ID do recursso referenciado",display: Optional[str] = Field(None,example="Robô Mock 01",description="Name"))
+    reference: str = Field(
+        ...,
+        example="Device/MOCK-ROBOT-01",
+        description="Tipo/ID do recurso referenciado",
+    )
+    display: str | None = Field(
+        None, example="Robô Mock 01", description="Nome legível"
+    )
+
 
 class BusinessStatus(BaseModel):
-    text: str = Field(...,example="Navigating 3rd floor en route to room 304")
+    text: str = Field(..., example="Navigating 3rd floor en route to room 304")
+
 
 class FHIRTask(BaseModel):
-    resourceType: str = Field(
-        default="Task",
-        const=True,
-    )
-    id: str = Field(
-        default_factory=lambda: f"task-{uuid.uuid4().hex[:8]}"
-    )
-    status: TaskStatus = Field(
-        default=TaskStatus.REQUESTED
-    )
+    resourceType: Literal["Task"] = "Task"
+    id: str = Field(default_factory=lambda: f"task-{uuid.uuid4().hex[:8]}")
+    status: TaskStatus = Field(default=TaskStatus.REQUESTED)
     intent: str = Field(
-        default="order",
-        description="Intention: proposal | plan | order"
+        default="order", description="Intention: proposal | plan | order"
     )
-    priority: TaskPriority = Field(
-        default=TaskPriority.ROUTINE
+    priority: TaskPriority = Field(default=TaskPriority.ROUTINE)
+    description: str | None = Field(default=None, example="O- blood bag in transit")
+    focus: dict[str, Any] | None = Field(
+        default=None, description="Item or medication in transit"
     )
-    description: Optional[str] = Field(
-        default=None,
-        example="O- blood bag in transit"
-    )
-    focus: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Item or medication in transit"
-    )
-    owner: Optional[Reference] = Field(
-        None,
-        description="Robot owner task"
-    )
-    location: Optional[Reference] = Field(
-        None,
-        description="Drop-off location"
-    )
-    businessStatus: Optional[BusinessStatus] = None
-    authoredOn: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
-    lastModified: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    owner: Reference | None = Field(None, description="Robot owner task")
+    location: Reference | None = Field(None, description="Drop-off location")
+    businessStatus: BusinessStatus | None = None
+    authoredOn: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    lastModified: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 
 class TaskUpdate(BaseModel):
-    status:TaskStatus
-    businessStatus_txt: Optional[str] = Field(
-        None,
-        description="Text Description"
-    )
-
-    
+    status: TaskStatus
+    businessStatus_txt: str | None = Field(None, description="Text Description")

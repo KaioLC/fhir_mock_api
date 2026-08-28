@@ -1,0 +1,16 @@
+services:
+  fhir-mock-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fhir_mock_api
+    ports:
+      - "9123:9123"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=9123
+      - CORS_ORIGINS=["*"]
+    volumes:
+      - ./app:/app/app
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "9123", "--reload"]
+    restart: unless-stopped

@@ -1,6 +1,8 @@
 from enum import Enum
-from typing import Optional
+from typing import Literal
+
 from pydantic import BaseModel, Field
+
 
 class LocationPhysicalType(str, Enum):
     ROOM = "room"
@@ -9,24 +11,9 @@ class LocationPhysicalType(str, Enum):
 
 
 class FHIRLocation(BaseModel):
-    resourceType: str = Field(
-        default="Location",
-        const=True
-    )
-    id: str = Field(
-        ..., 
-        example="room-304"
-    )
-    name: str = Field(
-        ...,
-        example="Room 304 - B"
-    )
-    floor: str = Field(
-        ...,
-        example="3rd floor"
-    )
-    status: str = Field(
-        default="active",
-        example="active"
-    )
-    physicalType: Optional[LocationPhysicalType] = LocationPhysicalType.ROOM
+    resourceType: Literal["Location"] = "Location"
+    id: str = Field(..., example="room-304")
+    name: str = Field(..., example="Room 304 - B")
+    floor: str = Field(..., example="3rd floor")
+    status: str = Field(default="active", example="active")
+    physicalType: LocationPhysicalType | None = LocationPhysicalType.ROOM

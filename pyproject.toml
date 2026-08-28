@@ -14,5 +14,19 @@ dependencies = [
     "uvicorn[standard]>=0.52.4",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "httpx>=0.27.0",
+    "pytest>=8.0.0",
+    "ruff>=0.3.0",
+]
+
 [tool.uv]
 package = false
+
+[tool.pytest.ini_options]
+addopts = "-p no:launch_testing -p no:launch_pytest -p no:launch_testing_ros -v"
+testpaths = ["tests"]
+
+[tool.ruff.lint]
+ignore = ["B008"]

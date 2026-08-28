@@ -1,10 +1,9 @@
-from typing import List, Optional
 from datetime import datetime, timezone
+
 from fastapi import APIRouter, HTTPException, Query, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
 
-from app.models.fhir_task import FHIRTask, TaskStatus, BusinessStatus, TaskUpdate
+from app.models.fhir_task import BusinessStatus, FHIRTask, TaskStatus, TaskUpdate
 from app.services.state_store import state_store
 
 router = APIRouter(prefix="/fhir/Task", tags=["FHIR Task"])
@@ -20,7 +19,7 @@ async def create_task(task_input: FHIRTask):
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
         content=task_input.model_dump(mode="json"),
-        headers={"Location": f"/fhir/Task/{task_input.id}"}
+        headers={"Location": f"/fhir/Task/{task_input.id}"},
     )
 
 
@@ -30,22 +29,24 @@ async def get_task(task_id: str):
     if task_id not in state_store.tasks:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task '{task_id}' não encontrada."
+            detail=f"Task '{task_id}' não encontrada.",
         )
     return state_store.tasks[task_id]
 
 
-@router.get("", response_model=List[FHIRTask])
+@router.get("", response_model=list[FHIRTask])
 async def list_tasks(
-    status_filter: Optional[TaskStatus] = Query(None, alias="status"),
-    owner: Optional[str] = Query(None, description="Ex: Device/MOCK-ROBOT-01")
+    status_filter: TaskStatus | None = Query(None, alias="status"),
+    owner: str | None = Query(None, description="Ex: Device/MOCK-ROBOT-01"),
 ):
     """List tasks wiht filter"""
     results = list(state_store.tasks.values())
     if status_filter:
         results = [t for t in results if t.status == status_filter]
     if owner:
-        results = [t for t in results if t.owner and t.owner.reference.lower() == owner.lower()]
+        results = [
+            t for t in results if t.owner and t.owner.reference.lower() == owner.lower()
+        ]
     return results
 
 
@@ -57,16 +58,16 @@ async def update_task_status(task_id: str, update_data: TaskUpdate):
     if task_id not in state_store.tasks:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task '{task_id}' não encontrada."
+            detail=f"Task '{task_id}' não encontrada.",
         )
-    
+
     task = state_store.tasks[task_id]
-    
+
     task.status = update_data.status
-    
+
     if update_data.businessStatus_txt:
         task.businessStatus = BusinessStatus(text=update_data.businessStatus_txt)
-        
+
     task.lastModified = datetime.now(timezone.utc)
-    
+
     return task
