@@ -25,7 +25,7 @@ dev = [
 package = false
 
 [tool.pytest.ini_options]
-addopts = "-p no:launch_testing -p no:launch_pytest -p no:launch_testing_ros -v"
+addopts = "-p no:launch_testing -p no:launch_pytest -p no:launch_testing_ros -p no:launch_testing_ros_pytest_entrypoint -p no:ament_pep257 -p no:ament_black -p no:ament_flake8 -p no:ament_mypy -p no:ament_xmllint -p no:ament_lint -p no:ament_copyright -v"
 testpaths = ["tests"]
 
 [tool.ruff.lint]

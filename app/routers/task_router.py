@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 
-from app.models.fhir_task import BusinessStatus, FHIRTask, TaskStatus, TaskUpdate
+from app.models.fhir_task import BusinessStatus, FHIRTask, TaskStatus, TaskPatch
 from app.services.state_store import state_store
 
 router = APIRouter(prefix="/fhir/Task", tags=["FHIR Task"])
@@ -50,10 +50,10 @@ async def list_tasks(
     return results
 
 
-@router.patch("/{task_id}/status", response_model=FHIRTask)
-async def update_task_status(task_id: str, update_data: TaskUpdate):
+@router.patch("/{task_id}", response_model=FHIRTask)
+async def patch_task(task_id: str, patch_data: TaskPatch):
     """
-    Update a specified field in a task
+    patch a specified field in a task
     """
     if task_id not in state_store.tasks:
         raise HTTPException(
@@ -63,10 +63,11 @@ async def update_task_status(task_id: str, update_data: TaskUpdate):
 
     task = state_store.tasks[task_id]
 
-    task.status = update_data.status
+    update_dict = patch_data.model_dump(exclude_unset=True)
 
-    if update_data.businessStatus_txt:
-        task.businessStatus = BusinessStatus(text=update_data.businessStatus_txt)
+    for field_name in update_dict:
+        new_val = getattr(patch_data, field_name)
+        setattr(task, field_name, new_val)
 
     task.lastModified = datetime.now(timezone.utc)
 
