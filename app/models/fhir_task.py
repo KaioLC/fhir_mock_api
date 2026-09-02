@@ -63,12 +63,14 @@ class FHIRTask(BaseModel):
 #    status: TaskStatus
 #    businessStatus_txt: str | None = Field(None, description="Text Description")
 
+
 class TaskPatch(BaseModel):
     status: TaskStatus | None = Field(default=None, description="New FHIR task status")
-    businessStatus: BusinessStatus | None = Field(default=None, description="business status")
+    businessStatus: BusinessStatus | None = Field(
+        default=None, description="business status"
+    )
     priority: TaskPriority | None = Field(default=None, description="Priority Level")
     description: str | None = Field(default=None, description="Task description")
     owner: Reference | None = Field(default=None, description="Device with the task")
     location: Reference | None = Field(default=None, description="Task Location")
     focus: dict[str, Any] | None = Field(default=None, description="Robot payload")
-
